@@ -1,14 +1,17 @@
 cmake_minimum_required(VERSION 3.10...3.18)
 
+# GLOBAL：指定这个导入的库是全局的。全局库可以在所有CMake范围内使用，而不仅仅是定义它的范围
 add_library(nlohmann::json INTERFACE IMPORTED GLOBAL)
 set_property(TARGET nlohmann::json PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/json/)
 
+# 添加EXCLUDE_FROM_ALL参数表示basalt-headers目录中的目标不会包含在默认的all目标中。即，默认情况下，运行make或ninja时
+# 不会构建basalt-headers中的目标。这对于可选的或不常用的组件特别有用，避免不必要的构建时间。
 add_subdirectory(basalt-headers EXCLUDE_FROM_ALL)
 add_subdirectory(ros EXCLUDE_FROM_ALL)
 add_subdirectory(apriltag EXCLUDE_FROM_ALL)
 
 
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "Enable BUILD_SHARED_LIBS")
+set(BUILD_SHARED_LIBS ON CACHE BOOL "Enable BUILD_SHARED_LIBS")
 set(BUILD_TESTS OFF CACHE BOOL "Enable BUILD_TESTS")
 set(BUILD_TOOLS OFF CACHE BOOL "Enable BUILD_TOOLS")
 set(CMAKE_EXPORT_NO_PACKAGE_REGISTRY ON)
