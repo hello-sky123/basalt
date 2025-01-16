@@ -29,10 +29,10 @@ if(LSB_RELEASE_PROGRAM)
 
   # 根据发行版本，设置不同的依赖项
   if(${LSB_RELEASE_ID_SHORT} EQUAL "24.04")
-    set(DEBIAN_DEPENDS "libtbb12, liblz4-1, libbz2-1.0, libboost-filesystem1.83.0, libboost-date-time1.83.0, libboost-program-options1.83.0, libboost-regex1.83.0, libopencv-dev, libglew2.2, libjpeg8, libpng16-16, librealsense2, librealsense2-dkms, librealsense2-gl, librealsense2-utils")
+    set(DEBIAN_DEPENDS "libtbb12, liblz4-1, libbz2-1.0, libfmt9, libboost-filesystem1.83.0, libboost-date-time1.83.0, libboost-program-options1.83.0, libboost-regex1.83.0, libopencv-dev, libglew2.2, libjpeg8, libpng16-16, librealsense2, librealsense2-dkms, librealsense2-gl, librealsense2-utils")
 
   elseif(${LSB_RELEASE_ID_SHORT} EQUAL "22.04")
-    set(DEBIAN_DEPENDS "libtbb12, liblz4-1, libbz2-1.0, libboost-filesystem1.74.0, libboost-date-time1.74.0, libboost-program-options1.74.0, libboost-regex1.74.0, libopencv-dev, libglew2.2, libjpeg8, libpng16-16, librealsense2, librealsense2-dkms, librealsense2-gl, librealsense2-utils")
+    set(DEBIAN_DEPENDS "libtbb12, liblz4-1, libbz2-1.0, libfmt8, libboost-filesystem1.74.0, libboost-date-time1.74.0, libboost-program-options1.74.0, libboost-regex1.74.0, libopencv-dev, libglew2.2, libjpeg8, libpng16-16, librealsense2, librealsense2-dkms, librealsense2-gl, librealsense2-utils")
 
   elseif(${LSB_RELEASE_ID_SHORT} EQUAL "20.04")
     set(DEBIAN_DEPENDS "libtbb2, liblz4-1, libbz2-1.0, libboost-filesystem1.71.0, libboost-date-time1.71.0, libboost-program-options1.71.0, libboost-regex1.71.0, libopencv-dev, libglew2.1, libjpeg8, libpng16-16, librealsense2, librealsense2-dkms, librealsense2-gl, librealsense2-utils")
@@ -149,7 +149,11 @@ else()
   # 直接继续执行下一个case分支的代码警告降级为普通警告，而不是错误。
   set(BASALT_CXX_FLAGS "${BASALT_CXX_FLAGS} -Wno-error=maybe-uninitialized -Wno-error=implicit-fallthrough")
 
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9)
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10.0)
+    set(BASALT_CXX_FLAGS "${BASALT_CXX_FLAGS} -Wno-error=uninitialized")
+  endif()
+
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9.0)
       # These are disabled to avoid lot's of warnings in Eigen code with gcc-9
       # 将代码中使用了被标记为弃用的拷贝构造函数的警告降级为普通警告。GCC9及更高版本对这种情况进行了更严格的检查和警告
       set(BASALT_CXX_FLAGS "${BASALT_CXX_FLAGS} -Wno-error=deprecated-copy")
@@ -304,6 +308,8 @@ set_property(TARGET basalt::opencv PROPERTY INTERFACE_LINK_LIBRARIES ${OpenCV_LI
 find_package(fmt REQUIRED)
 message(STATUS "Found {fmt} ${fmt_VERSION} in: ${fmt_DIR}")
 
+set(BASALT_PANGO_TARGETS pango_display pango_image pango_windowing pango_plot pango_video)
+
 add_subdirectory(thirdparty) # 处理子目录thirdparty，执行该目录下的CMakeLists.txt文件
 
 # custom scoped cli11 target
@@ -422,35 +428,35 @@ target_compile_definitions(basalt PUBLIC ${BASALT_COMPILE_DEFINITIONS})
 #target_compile_definitions(basalt PUBLIC BASALT_DISABLE_ASSERTS)
 
 add_executable(basalt_calibrate src/calibrate.cpp src/calibration/cam_calib.cpp)
-target_link_libraries(basalt_calibrate basalt pangolin basalt::cli11)
+target_link_libraries(basalt_calibrate basalt ${BASALT_PANGO_TARGETS} basalt::cli11)
 
 add_executable(basalt_calibrate_imu src/calibrate_imu.cpp src/calibration/cam_imu_calib.cpp)
-target_link_libraries(basalt_calibrate_imu basalt pangolin basalt::cli11)
+target_link_libraries(basalt_calibrate_imu basalt ${BASALT_PANGO_TARGETS} basalt::cli11)
 
 add_executable(basalt_vio_sim src/vio_sim.cpp)
-target_link_libraries(basalt_vio_sim basalt pangolin basalt::cli11)
+target_link_libraries(basalt_vio_sim basalt ${BASALT_PANGO_TARGETS} basalt::cli11)
 
 add_executable(basalt_mapper_sim src/mapper_sim.cpp)
-target_link_libraries(basalt_mapper_sim basalt pangolin basalt::cli11)
+target_link_libraries(basalt_mapper_sim basalt ${BASALT_PANGO_TARGETS} basalt::cli11)
 
 # mapper sim native doesn't use template free interface
 if(BASALT_INSTANTIATIONS_DOUBLE)
   add_executable(basalt_mapper_sim_naive src/mapper_sim_naive.cpp)
-  target_link_libraries(basalt_mapper_sim_naive basalt pangolin basalt::cli11)
+  target_link_libraries(basalt_mapper_sim_naive basalt ${BASALT_PANGO_TARGETS} basalt::cli11)
 endif()
 
 add_executable(basalt_mapper src/mapper.cpp)
-target_link_libraries(basalt_mapper basalt pangolin basalt::cli11)
+target_link_libraries(basalt_mapper basalt ${BASALT_PANGO_TARGETS} basalt::cli11)
 
 
 add_executable(basalt_opt_flow src/opt_flow.cpp)
-target_link_libraries(basalt_opt_flow basalt pangolin basalt::cli11)
+target_link_libraries(basalt_opt_flow basalt ${BASALT_PANGO_TARGETS} basalt::cli11)
 
 add_executable(basalt_vio src/vio.cpp)
-target_link_libraries(basalt_vio basalt pangolin basalt::cli11 fmt::fmt)
+target_link_libraries(basalt_vio basalt ${BASALT_PANGO_TARGETS} basalt::cli11 fmt::fmt)
 
 add_executable(basalt_time_alignment src/time_alignment.cpp)
-target_link_libraries(basalt_time_alignment basalt pangolin basalt::cli11)
+target_link_libraries(basalt_time_alignment basalt ${BASALT_PANGO_TARGETS} basalt::cli11)
 
 add_executable(basalt_kitti_eval src/kitti_eval.cpp)
 target_link_libraries(basalt_kitti_eval basalt::basalt-headers basalt::cli11)
@@ -458,10 +464,10 @@ target_link_libraries(basalt_kitti_eval basalt::basalt-headers basalt::cli11)
 find_package(realsense2 QUIET)
 if(realsense2_FOUND)
   add_executable(basalt_rs_t265_record src/rs_t265_record.cpp src/device/rs_t265.cpp)
-  target_link_libraries(basalt_rs_t265_record basalt realsense2::realsense2 pangolin basalt::cli11)
+  target_link_libraries(basalt_rs_t265_record basalt realsense2::realsense2 ${BASALT_PANGO_TARGETS} basalt::cli11)
 
   add_executable(basalt_rs_t265_vio src/rs_t265_vio.cpp src/device/rs_t265.cpp)
-  target_link_libraries(basalt_rs_t265_vio basalt realsense2::realsense2 pangolin basalt::cli11)
+  target_link_libraries(basalt_rs_t265_vio basalt realsense2::realsense2 ${BASALT_PANGO_TARGETS} basalt::cli11)
 endif()
 
 # EXPORT BasaltTargets：将这些目标导出为BasaltTargets，可以在其他CMake项目中使用find_package或include引入这些目标
