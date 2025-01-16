@@ -161,7 +161,7 @@ else()
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)
     # These are disabled due to warnings in pangolin
     #set(BASALT_CXX_FLAGS "${BASALT_CXX_FLAGS} -Wno-error=parentheses")
-    set(BASALT_CXX_FLAGS "${BASALT_CXX_FLAGS} -Wno-parentheses") # 代码中可能存在需要括号来消除歧义的地方
+    set(BASALT_CXX_FLAGS "${BASALT_CXX_FLAGS} -Wno-parentheses -Wno-error=array-bounds") # 代码中可能存在需要括号来消除歧义的地方
   endif()
 endif()
 
