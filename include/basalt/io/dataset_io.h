@@ -112,16 +112,16 @@ struct AprilgridCornersData {
 
 class VioDataset {
  public:
-  virtual ~VioDataset(){};
+  virtual ~VioDataset()= default;
 
   virtual size_t get_num_cams() const = 0;
 
-  virtual std::vector<int64_t> &get_image_timestamps() = 0;
+  virtual std::vector<int64_t>& get_image_timestamps() = 0;
 
-  virtual const Eigen::aligned_vector<AccelData> &get_accel_data() const = 0;
-  virtual const Eigen::aligned_vector<GyroData> &get_gyro_data() const = 0;
-  virtual const std::vector<int64_t> &get_gt_timestamps() const = 0;
-  virtual const Eigen::aligned_vector<Sophus::SE3d> &get_gt_pose_data()
+  virtual const Eigen::aligned_vector<AccelData>& get_accel_data() const = 0;
+  virtual const Eigen::aligned_vector<GyroData>& get_gyro_data() const = 0;
+  virtual const std::vector<int64_t>& get_gt_timestamps() const = 0;
+  virtual const Eigen::aligned_vector<Sophus::SE3d>& get_gt_pose_data()
       const = 0;
   virtual int64_t get_mocap_to_imu_offset_ns() const = 0;
   virtual std::vector<ImageData> get_image_data(int64_t t_ns) = 0;
@@ -137,7 +137,7 @@ class DatasetIoInterface {
   virtual void reset() = 0;
   virtual VioDatasetPtr get_data() = 0;
 
-  virtual ~DatasetIoInterface(){};
+  virtual ~DatasetIoInterface()= default;
 };
 
 typedef std::shared_ptr<DatasetIoInterface> DatasetIoInterfacePtr;
