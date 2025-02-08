@@ -41,7 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace basalt {
 
-AprilGrid::AprilGrid(const std::string &config_path) {
+AprilGrid::AprilGrid(const std::string& config_path) {
   std::ifstream is(config_path);
   if (is.is_open()) {
     cereal::JSONInputArchive ar(is);
@@ -55,6 +55,7 @@ AprilGrid::AprilGrid(const std::string &config_path) {
     std::abort();
   }
 
+  // 坐标系原点在左上角，x轴向右，y轴向下（坐标系有两种，另一种原点是在左下角）
   double x_corner_offsets[4] = {0, tagSize, tagSize, 0};
   double y_corner_offsets[4] = {0, 0, tagSize, tagSize};
 
@@ -62,14 +63,14 @@ AprilGrid::AprilGrid(const std::string &config_path) {
 
   for (int y = 0; y < tagRows; y++) {
     for (int x = 0; x < tagCols; x++) {
-      int tag_id = tagCols * y + x;
+      int tag_id = tagCols * y + x; // tag id从左上角开始，从左到右，从上到下递增
       double x_offset = x * tagSize * (1 + tagSpacing);
       double y_offset = y * tagSize * (1 + tagSpacing);
 
       for (int i = 0; i < 4; i++) {
         int corner_id = (tag_id << 2) + i;
 
-        Eigen::Vector4d &pos_3d = aprilgrid_corner_pos_3d[corner_id];
+        Eigen::Vector4d& pos_3d = aprilgrid_corner_pos_3d[corner_id];
 
         pos_3d[0] = x_offset + x_corner_offsets[i];
         pos_3d[1] = y_offset + y_corner_offsets[i];
@@ -79,6 +80,7 @@ AprilGrid::AprilGrid(const std::string &config_path) {
     }
   }
 
+  // 暗角校正采样点
   int num_vign_points = 5;
   int num_blocks = tagCols * tagRows * 2;
 
@@ -95,9 +97,9 @@ AprilGrid::AprilGrid(const std::string &config_path) {
       double coeff = double(k + 1) / double(num_vign_points + 1);
 
       aprilgrid_vignette_pos_3d[k * num_blocks + 2 * i + 0] =
-          (p1 + coeff * (p2 - p1));
+          p1 + coeff * (p2 - p1);
       aprilgrid_vignette_pos_3d[k * num_blocks + 2 * i + 1] =
-          (p2 + coeff * (p3 - p2));
+          p2 + coeff * (p3 - p2);
 
       aprilgrid_vignette_pos_3d[k * num_blocks + 2 * i + 0][0] +=
           tagSize * tagSpacing / 2;
@@ -116,7 +118,7 @@ AprilGrid::AprilGrid(const std::string &config_path) {
       double coeff = double(k + 1) / double(num_vign_points + 1);
 
       aprilgrid_vignette_pos_3d[curr_idx + k * tagCols + i] =
-          (p0 + coeff * (p1 - p0));
+          p0 + coeff * (p1 - p0);
 
       aprilgrid_vignette_pos_3d[curr_idx + k * tagCols + i][1] -=
           tagSize * tagSpacing / 2;
