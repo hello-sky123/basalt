@@ -133,7 +133,7 @@ typedef std::shared_ptr<VioDataset> VioDatasetPtr;
 
 class DatasetIoInterface {
  public:
-  virtual void read(const std::string &path) = 0;
+  virtual void read(const std::string& path) = 0;
   virtual void reset() = 0;
   virtual VioDatasetPtr get_data() = 0;
 
@@ -144,7 +144,7 @@ typedef std::shared_ptr<DatasetIoInterface> DatasetIoInterfacePtr;
 
 class DatasetIoFactory {
  public:
-  static DatasetIoInterfacePtr getDatasetIo(const std::string &dataset_type,
+  static DatasetIoInterfacePtr getDatasetIo(const std::string& dataset_type,
                                             bool load_mocap_as_gt = false);
 };
 
@@ -153,7 +153,7 @@ class DatasetIoFactory {
 namespace cereal {
 
 template <class Archive>
-void serialize(Archive &archive, basalt::ManagedImage<uint8_t> &m) {
+void serialize(Archive& archive, basalt::ManagedImage<uint8_t>& m) {
   archive(m.w);
   archive(m.h);
 
@@ -163,12 +163,12 @@ void serialize(Archive &archive, basalt::ManagedImage<uint8_t> &m) {
 }
 
 template <class Archive>
-void serialize(Archive &ar, basalt::GyroData &c) {
+void serialize(Archive& ar, basalt::GyroData& c) {
   ar(c.timestamp_ns, c.data);
 }
 
 template <class Archive>
-void serialize(Archive &ar, basalt::AccelData &c) {
+void serialize(Archive& ar, basalt::AccelData& c) {
   ar(c.timestamp_ns, c.data);
 }
 

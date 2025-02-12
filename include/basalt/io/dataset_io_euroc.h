@@ -71,23 +71,24 @@ class EurocVioDataset : public VioDataset {
 
   size_t get_num_cams() const { return num_cams; }
 
-  std::vector<int64_t> &get_image_timestamps() { return image_timestamps; }
+  std::vector<int64_t>& get_image_timestamps() { return image_timestamps; }
 
-  const Eigen::aligned_vector<AccelData> &get_accel_data() const {
+  const Eigen::aligned_vector<AccelData>& get_accel_data() const {
     return accel_data;
   }
-  const Eigen::aligned_vector<GyroData> &get_gyro_data() const {
+  const Eigen::aligned_vector<GyroData>& get_gyro_data() const {
     return gyro_data;
   }
-  const std::vector<int64_t> &get_gt_timestamps() const {
+  const std::vector<int64_t>& get_gt_timestamps() const {
     return gt_timestamps;
   }
-  const Eigen::aligned_vector<Sophus::SE3d> &get_gt_pose_data() const {
+  const Eigen::aligned_vector<Sophus::SE3d>& get_gt_pose_data() const {
     return gt_pose_data;
   }
 
   int64_t get_mocap_to_imu_offset_ns() const { return mocap_to_imu_offset_ns; }
 
+  // 加载给定时间戳的图像数据
   std::vector<ImageData> get_image_data(int64_t t_ns) {
     std::vector<ImageData> res(num_cams);
 
@@ -98,26 +99,28 @@ class EurocVioDataset : public VioDataset {
           path + folder[i] + "data/" + image_path[t_ns];
 
       if (fs::exists(full_image_path)) {
+        // 使用OpenCV原样读取图像
         cv::Mat img = cv::imread(full_image_path, cv::IMREAD_UNCHANGED);
 
         if (img.type() == CV_8UC1) {
           res[i].img.reset(new ManagedImage<uint16_t>(img.cols, img.rows));
 
-          const uint8_t *data_in = img.ptr();
-          uint16_t *data_out = res[i].img->ptr;
+          const uint8_t* data_in = img.ptr();
+          uint16_t* data_out = res[i].img->ptr;
 
           size_t full_size = img.cols * img.rows;
           for (size_t i = 0; i < full_size; i++) {
             int val = data_in[i];
-            val = val << 8;
+            val = val << 8; // 8位转16位
             data_out[i] = val;
           }
         } else if (img.type() == CV_8UC3) {
           res[i].img.reset(new ManagedImage<uint16_t>(img.cols, img.rows));
 
-          const uint8_t *data_in = img.ptr();
-          uint16_t *data_out = res[i].img->ptr;
+          const uint8_t* data_in = img.ptr();
+          uint16_t* data_out = res[i].img->ptr;
 
+          // 彩色图转换为灰度图时需要对三个通道加权
           size_t full_size = img.cols * img.rows;
           for (size_t i = 0; i < full_size; i++) {
             int val = data_in[i * 3];
@@ -153,18 +156,18 @@ class EurocIO : public DatasetIoInterface {
  public:
   EurocIO(bool load_mocap_as_gt) : load_mocap_as_gt(load_mocap_as_gt) {}
 
-  void read(const std::string &path) {
+  void read(const std::string& path) {
     if (!fs::exists(path))
       std::cerr << "No dataset found in " << path << std::endl;
 
-    data.reset(new EurocVioDataset);
+    data.reset(new EurocVioDataset); // 释放之前的数据集，创建新的数据集
 
     data->num_cams = 2;
     data->path = path;
 
-    read_image_timestamps(path + "/mav0/cam0/");
+    read_image_timestamps(path + "/mav0/cam0/"); // 读取图像时间戳和对应的图像文件名
 
-    read_imu_data(path + "/mav0/imu0/");
+    read_imu_data(path + "/mav0/imu0/"); // 读取IMU数据
 
     if (!load_mocap_as_gt &&
         fs::exists(path + "/mav0/state_groundtruth_estimate0/data.csv")) {
@@ -191,8 +194,8 @@ class EurocIO : public DatasetIoInterface {
   VioDatasetPtr get_data() { return data; }
 
  private:
-  void read_exposure(const std::string &path,
-                     std::unordered_map<int64_t, double> &exposure_data) {
+  void read_exposure(const std::string& path,
+                     std::unordered_map<int64_t, double>& exposure_data) {
     exposure_data.clear();
 
     std::ifstream f(path + "exposure.csv");
@@ -212,7 +215,7 @@ class EurocIO : public DatasetIoInterface {
     }
   }
 
-  void read_image_timestamps(const std::string &path) {
+  void read_image_timestamps(const std::string& path) {
     std::ifstream f(path + "data.csv");
     std::string line;
     while (std::getline(f, line)) {
@@ -221,6 +224,8 @@ class EurocIO : public DatasetIoInterface {
       char tmp;
       int64_t t_ns;
       std::string path;
+      // 利用了流提取符的默认行为，跳过前导空白字符（空格和制表符），以空白字符作为分隔符，
+      // 遇到逗号也会停止读取
       ss >> t_ns >> tmp >> path;
 
       data->image_timestamps.emplace_back(t_ns);
@@ -228,7 +233,7 @@ class EurocIO : public DatasetIoInterface {
     }
   }
 
-  void read_imu_data(const std::string &path) {
+  void read_imu_data(const std::string& path) {
     data->accel_data.clear();
     data->gyro_data.clear();
 
@@ -256,7 +261,7 @@ class EurocIO : public DatasetIoInterface {
     }
   }
 
-  void read_gt_data_state(const std::string &path) {
+  void read_gt_data_state(const std::string& path) {
     data->gt_timestamps.clear();
     data->gt_pose_data.clear();
 
@@ -283,7 +288,7 @@ class EurocIO : public DatasetIoInterface {
     }
   }
 
-  void read_gt_data_pose(const std::string &path) {
+  void read_gt_data_pose(const std::string& path) {
     data->gt_timestamps.clear();
     data->gt_pose_data.clear();
 
